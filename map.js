@@ -177,8 +177,9 @@ service.getDistanceMatrix(
     travelMode: 'WALKING',
   }, callback);
 
-
 function callback(response, status) {
+  Dictionary<(string,string), (int,int)> statistics;
+  
   if (status == 'OK') {
     var origins = response.originAddresses;
     var destinations = response.destinationAddresses;
@@ -191,6 +192,7 @@ function callback(response, status) {
         var duration = element.duration.text;
         var from = origins[i];
         var to = destinations[j];
+        statistics[(from, to)] = (distance, duration)
       }
     }
   }
