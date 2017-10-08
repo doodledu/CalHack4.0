@@ -22,8 +22,14 @@ public class locationGrader {
         } catch (java.io.IOException e) {
             return;
         }
+        Scanner s = new Scanner(System.in);
+        String origin = s.nextLine();
+        String destination = s.nextLine();
+        String transportationType = s.nextLine();
+        System.out.print(getLocationGrading(origin, destination, transportationType));
     }
-    public Float getLocationGrading(String origin, String destination, String transportationType){
+
+    static public Float getLocationGrading(String origin, String destination, String transportationType){
         if (transportationType.equals("walking")) {
             return locationGrading.get(origin+destination).get(0);
         } else if (transportationType.equals("cycling")) {
@@ -32,8 +38,5 @@ public class locationGrader {
             return 0.0f;
         }
     }
-
-
-
 }
 
