@@ -2,6 +2,13 @@ import urllib
 import re
 from bs4 import BeautifulSoup
 
+positive_words=["good","awesome","fantastic","like","recommend","best","enlightening","clear","amazing","kind","care"]
+positive_words+=[word.title() for word in positive_words]
+negativeOfPositive=["isn't "+word for word in positive_words]+["not "+word for word in positive_words]+["doesn't "+word for word in positive_words]+["don't "+word for word in positive_words]
+negative_words=["bad","avoid","worst","never","accent"]
+negative_words+=[word.title() for word in negative_words]
+
+
 def getProfessorID():
     url='http://search.mtvnservices.com/typeahead/suggest/?solrformat=true&rows=3580&callback=noCB&q=*%3A*+AND+schoolid_s%3A1072&defType=edismax&qf=teacherfirstname_t%5E2000+teacherlastname_t%5E2000+teacherfullname_t%5E2000+autosuggest&bf=pow(total_number_of_ratings_i%2C2.1)&sort=total_number_of_ratings_i+desc&siteName=rmp&rows=20&start=20&fl=pk_id+teacherfirstname_t+teacherlastname_t+total_number_of_ratings_i+averageratingscore_rf+schoolid_s&fq=&prefix=schoolname_t%3A%22University+of+California+Berkeley%22'
     lstOfProfessorID=[]
@@ -111,12 +118,6 @@ def calc_point(nameOfProfessor,course):
     ID=str(getProfessorID()[0][nameOfProfessor])
     link="http://www.ratemyprofessors.com/ShowRatings.jsp?tid="+ID
     page = urllib.urlopen(link).read()
-    positive_words=["good","awesome","fantastic","like","recommend","best","enlightening","clear","amazing"]
-    positive_words+=[word.title() for word in positive_words]
-    negativeOfPositive=["isn't "+word for word in positive_words]+["not "+word for word in positive_words]+["doesn't "+word for word in positive_words]+["don't "+word for word in positive_words]
-    negative_words=["bad","avoid","worst","never"]
-    negative_words+=[word.title() for word in negative_words]
-    #review={}
 
     num_comments=readWords(page)[0]
     dic_comments=readWords(page)[1]
@@ -124,19 +125,16 @@ def calc_point(nameOfProfessor,course):
     sum_lst=0
     for elem in lst:
         sum_lst+=elem[0]-elem[1]
-    result=(countPositive(positive_words,negativeOfPositive,page)-countNegative(negative_words,negativeOfPositive,page))/num_comments+sum_lst/num_comments
-    return result
+    result=sum_lst/num_comments
+    return result/4
 
-positive_words=["good","awesome","fantastic","like","recommend","best","enlightening","clear","amazing"]
-positive_words+=[word.title() for word in positive_words]
-negativeOfPositive=["isn't "+word for word in positive_words]+["not "+word for word in positive_words]+["doesn't "+word for word in positive_words]+["don't "+word for word in positive_words]
-negative_words=["bad","avoid","worst","never"]
-negative_words+=[word.title() for word in negative_words]
 
 def ratemyprofessor():
     ratings={}
     names=(getProfessorID()[0]).keys()
     for name in names:
+        if(i==100):
+            break
         ID=str(getProfessorID()[0][name])
         link="http://www.ratemyprofessors.com/ShowRatings.jsp?tid="+ID
         page = urllib.urlopen(link).read()
@@ -147,6 +145,7 @@ def ratemyprofessor():
             sum_lst=0
             for elem in lst:
                 sum_lst+=elem[0]-elem[1]
-            result=(countPositive(positive_words,negativeOfPositive,page)-countNegative(negative_words,negativeOfPositive,page))/num_comments+sum_lst/num_comments
+            result=sum_lst/(num_comments*4)
             ratings[(name,course)]=result
+            print i
     return ratings
