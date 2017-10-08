@@ -2,6 +2,44 @@ import urllib
 import re
 from bs4 import BeautifulSoup
 
+def getProfessorID():
+    url='http://search.mtvnservices.com/typeahead/suggest/?solrformat=true&rows=3580&callback=noCB&q=*%3A*+AND+schoolid_s%3A1072&defType=edismax&qf=teacherfirstname_t%5E2000+teacherlastname_t%5E2000+teacherfullname_t%5E2000+autosuggest&bf=pow(total_number_of_ratings_i%2C2.1)&sort=total_number_of_ratings_i+desc&siteName=rmp&rows=20&start=20&fl=pk_id+teacherfirstname_t+teacherlastname_t+total_number_of_ratings_i+averageratingscore_rf+schoolid_s&fq=&prefix=schoolname_t%3A%22University+of+California+Berkeley%22'
+    lstOfProfessorID=[]
+    lstOfProfessorName=[]
+    dic={}
+    sameName=[]
+    page = urllib.urlopen(url).read()
+    
+    soup = BeautifulSoup(page,"html.parser")
+    # kill all script and style elements
+    for script in soup(["script", "style"]):
+        script.extract()    # rip it out
+
+    # get text
+    text = soup.get_text()
+
+    # break into lines and remove leading and trailing space on each
+    lines = (line.strip() for line in text.splitlines())
+    # break multi-headlines into a line each
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    # drop blank lines
+    text = '\n'.join(chunk for chunk in chunks if chunk)
+    lines=list(text.splitlines())
+    
+    for i in range(len(lines)-4):
+        if("pk_id" in lines[i]):
+            professorID=int(lines[i][8:len(lines[i])-1])
+            #lstOfProfessorID+=[int(lines[i][8:len(lines[i])-1])]
+        if("teacherfirstname_t" in lines[i+3] and "teacherlastname_t" in lines[i+4]):
+            professorName=lines[i+4][21:len(lines[i+4])-3]+', '+lines[i+3][22]
+            #lstOfProfessorName+=[professorName.upper()]
+            if(professorName.upper() not in dic):
+                dic[professorName.upper()]=professorID
+            else:
+                sameName+=[professorName.upper()]
+    return dic,sameName
+    
+
 def countPositive(positive_words,negativeOfPositive,page):
     search=[]
     delete=[]
@@ -69,7 +107,9 @@ def readWords(page):
                 dic[lines[i+6]]+=[(float(lines[i+2]),float(lines[i+4]))]
     return num,dic
 
-def calc_point(link,course):
+def calc_point(nameOfProfessor,course):
+    ID=str(getProfessorID()[0][nameOfProfessor])
+    link="http://www.ratemyprofessors.com/ShowRatings.jsp?tid="+ID
     page = urllib.urlopen(link).read()
     positive_words=["good","awesome","fantastic","like","recommend","best","enlightening","clear","amazing"]
     positive_words+=[word.title() for word in positive_words]
@@ -87,5 +127,26 @@ def calc_point(link,course):
     result=(countPositive(positive_words,negativeOfPositive,page)-countNegative(negative_words,negativeOfPositive,page))/num_comments+sum_lst/num_comments
     return result
 
-    
-    
+positive_words=["good","awesome","fantastic","like","recommend","best","enlightening","clear","amazing"]
+positive_words+=[word.title() for word in positive_words]
+negativeOfPositive=["isn't "+word for word in positive_words]+["not "+word for word in positive_words]+["doesn't "+word for word in positive_words]+["don't "+word for word in positive_words]
+negative_words=["bad","avoid","worst","never"]
+negative_words+=[word.title() for word in negative_words]
+
+def ratemyprofessor():
+    ratings={}
+    names=(getProfessorID()[0]).keys()
+    for name in names:
+        ID=str(getProfessorID()[0][name])
+        link="http://www.ratemyprofessors.com/ShowRatings.jsp?tid="+ID
+        page = urllib.urlopen(link).read()
+        num_comments,dic_comments=readWords(page)
+        courses=dic_comments.keys()
+        for course in courses:
+            lst=dic_comments[course]
+            sum_lst=0
+            for elem in lst:
+                sum_lst+=elem[0]-elem[1]
+            result=(countPositive(positive_words,negativeOfPositive,page)-countNegative(negative_words,negativeOfPositive,page))/num_comments+sum_lst/num_comments
+            ratings[(name,course)]=result
+    return ratings
