@@ -1,4 +1,3 @@
-,origin,destination,walkinggrade,cyclinggrade
 0,BoaltHall,BoaltHall,1.53522276602,0.427576025116
 1,BoaltHall,CareerCenter,0.210327175064,0.336602402751
 2,BoaltHall,ClarkKerrCampus,-0.286508671544,-0.0272920867095
@@ -399,3 +398,4 @@
 397,ZellerbachHall,ValleyLifeSciencesBuilding,0.707163021673,0.245628780386
 398,ZellerbachHall,WheelerHall,0.210327175064,0.0636815356556
 399,ZellerbachHall,ZellerbachHall,1.53522276602,0.427576025116
+
