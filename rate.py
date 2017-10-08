@@ -3,14 +3,17 @@ import re
 from bs4 import BeautifulSoup
 
 positive_words=["good","awesome","fantastic","like","recommend","best","enlightening","clear","amazing","kind","care"]
-positive_words+=[word.title() for word in positive_words]
 negativeOfPositive=["isn't "+word for word in positive_words]+["not "+word for word in positive_words]+["doesn't "+word for word in positive_words]+["don't "+word for word in positive_words]
+negativeOfPositive+=[word.title() for word in negativeOfPositive]
+positive_words+=[word.title() for word in positive_words]
 negative_words=["bad","avoid","worst","never","accent"]
 negative_words+=[word.title() for word in negative_words]
 
 
 def getProfessorID():
+    #math_url='http://search.mtvnservices.com/typeahead/suggest/?solrformat=true&rows=5000&callback=noCB&q=*%3A*+AND+schoolid_s%3A1072+AND+teacherdepartment_s%3A%22Mathematics%22&defType=edismax&qf=teacherfirstname_t%5E2000+teacherlastname_t%5E2000+teacherfullname_t%5E2000+autosuggest&bf=pow(total_number_of_ratings_i%2C2.1)&sort=total_number_of_ratings_i+desc&siteName=rmp&rows=20&start=20&fl=pk_id+teacherfirstname_t+teacherlastname_t+total_number_of_ratings_i+averageratingscore_rf+schoolid_s&fq=&prefix=schoolname_t%3A%22University+of+California+Berkeley%22'
     url='http://search.mtvnservices.com/typeahead/suggest/?solrformat=true&rows=3580&callback=noCB&q=*%3A*+AND+schoolid_s%3A1072&defType=edismax&qf=teacherfirstname_t%5E2000+teacherlastname_t%5E2000+teacherfullname_t%5E2000+autosuggest&bf=pow(total_number_of_ratings_i%2C2.1)&sort=total_number_of_ratings_i+desc&siteName=rmp&rows=20&start=20&fl=pk_id+teacherfirstname_t+teacherlastname_t+total_number_of_ratings_i+averageratingscore_rf+schoolid_s&fq=&prefix=schoolname_t%3A%22University+of+California+Berkeley%22'
+    #cs_url='http://search.mtvnservices.com/typeahead/suggest/?solrformat=true&rows=2000&callback=noCB&q=*%3A*+AND+schoolid_s%3A1072+AND+teacherdepartment_s%3A%22Computer+Science%22&defType=edismax&qf=teacherfirstname_t%5E2000+teacherlastname_t%5E2000+teacherfullname_t%5E2000+autosuggest&bf=pow(total_number_of_ratings_i%2C2.1)&sort=total_number_of_ratings_i+desc&siteName=rmp&rows=20&start=20&fl=pk_id+teacherfirstname_t+teacherlastname_t+total_number_of_ratings_i+averageratingscore_rf+schoolid_s&fq=&prefix=schoolname_t%3A%22University+of+California+Berkeley%22'
     lstOfProfessorID=[]
     lstOfProfessorName=[]
     dic={}
@@ -56,6 +59,7 @@ def countPositive(positive_words,negativeOfPositive,page):
         delete+=re.findall(deleteWord,page)
     numOfPositiveWords=len(search)
     numOfNegPositive=len(delete)
+    print search
     return numOfPositiveWords-numOfNegPositive
 
 def countNegative(negative_words,negativeOfPositive,page):
@@ -133,8 +137,6 @@ def ratemyprofessor():
     ratings={}
     names=(getProfessorID()[0]).keys()
     for name in names:
-        if(i==100):
-            break
         ID=str(getProfessorID()[0][name])
         link="http://www.ratemyprofessors.com/ShowRatings.jsp?tid="+ID
         page = urllib.urlopen(link).read()
@@ -147,5 +149,5 @@ def ratemyprofessor():
                 sum_lst+=elem[0]-elem[1]
             result=sum_lst/(num_comments*4)
             ratings[(name,course)]=result
-            print i
+            print (name,course),result 
     return ratings
